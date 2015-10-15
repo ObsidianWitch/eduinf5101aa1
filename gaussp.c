@@ -10,35 +10,37 @@
 
 #define GRPNAME "gaussp"
 
-void matrix_load(char filename[], double *tab, int N, int proc, int nproc) {	
+void matrix_load(char filename[], double *tab, int N, int nTasks) {	
 	FILE *f = fopen(filename, "r");
     if (f == NULL) { perror("matrix_load : fopen "); } 
     
-    int counter = 0;
+    double *lineBuffer = malloc(N * sizeof(double));
+    
+    int counter = 0; // number of lines saved for the task 0
     for(size_t i = 0 ; i < N ; i++) {
-        double *tmp = malloc(N * sizeof(double));
         for(size_t j = 0 ; j < N ; j++) {
-            fscanf(f, "%lf", (tmp + j));
+            fscanf(f, "%lf", &lineBuffer[j]);
         }
-
-        if (i % nproc == 0) {
-            memcpy(tab+counter*N, tmp, N * sizeof(double));
+		
+		int taskGrpId = i % nTasks;
+        if (taskGrpId == 0) {
+            memcpy(&tab[counter * N], lineBuffer, N * sizeof(double));
             counter++;
-            free(tmp);
         }
         else {
-            int dest = pvm_gettid(GRPNAME, i % nproc);
+            int dest = pvm_gettid(GRPNAME, taskGrpId);
             pvm_initsend(PvmDataDefault);
-            pvm_pkdouble(tmp, N, 1);
-            pvm_send(dest, i % nproc);
-            free(tmp);
+            pvm_pkdouble(lineBuffer, N, 1);
+            pvm_send(dest, i % nTasks);
         }
     }
+    
+    free(lineBuffer);
     fclose(f);
 }
 
-void matrix_recv(double* tab, int N, int nproc) {
-    for (size_t i = 0 ; i < N / nproc ; i++) {
+void matrix_recv(double* tab, int N, int nTasks) {
+    for (size_t i = 0 ; i < N / nTasks ; i++) {
         double *tmp = malloc(N * sizeof(double));
         int src = pvm_gettid(GRPNAME, 0 );
         pvm_recv(src, -1);
@@ -48,13 +50,13 @@ void matrix_recv(double* tab, int N, int nproc) {
     }
 }
 
-void matrix_save(char filename[], double *tab, int N, int proc, int nproc) {
+void matrix_save(char filename[], double *tab, int N, int proc, int nTasks) {
     FILE *f;
 
     if (proc == 0) {
         if((f = fopen(filename, "w")) == NULL) { perror("matrix_save : fopen "); } 
         for(size_t i = 0 ; i < N ; i++) {
-            if (i % nproc == 0) { // P0 save its line
+            if (i % nTasks == 0) { // P0 save its line
                 for(size_t j = 0 ; j < N ; j++) {
                     fprintf(f, "%8.2f ", *(tab+i*N+j));
                 }
@@ -75,8 +77,8 @@ void matrix_save(char filename[], double *tab, int N, int proc, int nproc) {
         fclose(f);
     }
     else { // Send line to P0
-        for (size_t i = 0 ; i < N / nproc ; i++) {
-            int dest = pvm_gettid(GRPNAME, i % nproc);
+        for (size_t i = 0 ; i < N / nTasks ; i++) {
+            int dest = pvm_gettid(GRPNAME, i % nTasks);
             pvm_initsend(PvmDataDefault);
             pvm_pkdouble(tab+i*N, N, 1);
             pvm_send(dest, i);
@@ -93,14 +95,14 @@ void matrix_display(double *tab, int N) {
     }
 }
 
-void gauss(double * tab, int N) {
+void gauss(double* tab, int N) {
     double pivot;
 
     for(size_t k = 0 ; k < N-1 ; k++) { // mise a 0 de la col. k
         // printf(". ");
         if (fabs(*(tab+k+k*N)) <= 1.0e-11) {
             printf("ATTENTION: pivot %zu presque nul: %g\n", k, *(tab+k+k*N));
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
         for(size_t i = k+1 ; i < N ; i++) { // update lines(k+1) to(n-1)
             pivot = - *(tab+k+i*N) / *(tab+k+k*N);
@@ -113,28 +115,28 @@ void gauss(double * tab, int N) {
     printf("\n");
 }
 
-void dowork(char filename[], int me, int tids[], int N, int nproc) {
-    double *tab = malloc((N*nproc)*sizeof(double));
-    if(tab == NULL) {
-        printf("Cant malloc %lu bytes\n", (N*nproc) * sizeof(double));
-        exit(-1);
+void dowork(char filename[], int myGrpId, int N, int nTasks) {
+    double *tab = malloc((N/nTasks) * N * sizeof(double));
+    if (tab == NULL) { 
+	    printf("Malloc failed\n");
+	    exit(EXIT_FAILURE);
     }
     
-    if(me == 0){
-        matrix_load(filename , tab, N, me, nproc);
+    if (myGrpId == 0) {
+        matrix_load(filename, tab, N, nTasks);
     }
     else {
-        matrix_recv(tab, N, nproc);
+        matrix_recv(tab, N, nTasks);
     }
 
     sprintf(filename+strlen(filename), ".result");
-    matrix_save(filename, tab, N, me, nproc);
+    matrix_save(filename, tab, N, myGrpId, nTasks);
 }
 
 int main(int argc, char ** argv) {
     if (argc != 3) {
         printf("Usage: %s <matrix size> <matrix name>\n", argv[0]);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     int N = atoi(argv[1]); // matrix size
@@ -145,21 +147,16 @@ int main(int argc, char ** argv) {
     // enroll in pvm
     pvm_mytid();
 
-    // determine the size of my sibling list
-    int NPROC = 4; // default nb of proc
+    // determine the number of tasks
     int *tids;
-    NPROC = pvm_siblings(&tids);
+    int nTasks = pvm_siblings(&tids);
 	
 	// join group & get current task's index in the group
-    int me = pvm_joingroup(GRPNAME);
-    pvm_barrier(GRPNAME, NPROC);
-    pvm_freezegroup(GRPNAME, NPROC);
-    for (size_t i = 0; i < NPROC; i++) {
-        tids[i] = pvm_gettid(GRPNAME, i);
-    }
+    int myGrpId = pvm_joingroup(GRPNAME);
+    pvm_barrier(GRPNAME, nTasks);
+    pvm_freezegroup(GRPNAME, nTasks);
 
-    // All the tasks are equivalent at that point
-    dowork(filename, me, tids, N, NPROC);
+    dowork(filename, myGrpId, N, nTasks);
 
     pvm_lvgroup(GRPNAME);
     pvm_exit();
