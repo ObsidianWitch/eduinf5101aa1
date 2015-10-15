@@ -114,16 +114,12 @@ void gauss(double * tab, int N) {
 }
 
 void dowork(char filename[], int me, int tids[], int N, int nproc) {
-    // struct timeval tv1, tv2;
-    // int duree;
-    
     double *tab = malloc((N*nproc)*sizeof(double));
     if(tab == NULL) {
         printf("Cant malloc %lu bytes\n", (N*nproc) * sizeof(double));
         exit(-1);
     }
     
-    // gettimeofday(&tv1,(struct timezone*)0);
     if(me == 0){
         matrix_load(filename , tab, N, me, nproc);
     }
@@ -133,19 +129,6 @@ void dowork(char filename[], int me, int tids[], int N, int nproc) {
 
     sprintf(filename+strlen(filename), ".result");
     matrix_save(filename, tab, N, me, nproc);
-
-    /*
-    gettimeofday(&tv2,(struct timezone*)0);
-    duree =(tv2.tv_sec - tv1.tv_sec) * 1000000 + tv2.tv_usec - tv1.tv_usec;
-    printf("loading time: %10.8f sec.\n", duree/1000000.0);
-    gettimeofday(&tv1,(struct timezone*)0);
-
-    gauss(tab, N);
-
-    gettimeofday(&tv2,(struct timezone*)0);
-    duree =(tv2.tv_sec - tv1.tv_sec) * 1000000 + tv2.tv_usec - tv1.tv_usec;
-    printf("computation time: %10.8f sec.\n", duree/1000000.0);
-    //*/
 }
 
 int main(int argc, char ** argv) {
