@@ -1,6 +1,6 @@
 include $(PVM_ROOT)/conf/$(PVM_ARCH).def
 
-CFLAGS	=	-I$(PVM_ROOT)/include $(ARCHCFLAGS)
+CFLAGS	=	-I$(PVM_ROOT)/include $(ARCHCFLAGS) -Wall -std=c99
 
 LIBS	=	-lpvm3 -lgpvm3 $(ARCHLIB) -lm
 LFLAGS	=	-L$(PVM_ROOT)/lib/$(PVM_ARCH)
