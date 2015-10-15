@@ -40,13 +40,10 @@ void matrix_load(char filename[], double *tab, int N, int nTasks) {
 }
 
 void matrix_recv(double* tab, int N, int nTasks) {
+    int src = pvm_gettid(GRPNAME, 0 );
     for (size_t i = 0 ; i < N / nTasks ; i++) {
-        double *tmp = malloc(N * sizeof(double));
-        int src = pvm_gettid(GRPNAME, 0 );
         pvm_recv(src, -1);
-        pvm_upkdouble(tmp, 1, 1);
-        memcpy(tab+i*N, tmp, N * sizeof(tmp));
-        free(tmp);
+        pvm_upkdouble(&tab[i*N], N, 1);
     }
 }
 
