@@ -31,7 +31,7 @@ void matrix_load(char filename[], double *matrix, int N, int nTasks) {
             int dest = pvm_gettid(GRPNAME, taskGrpId);
             pvm_initsend(PvmDataDefault);
             pvm_pkdouble(lineBuffer, N, 1);
-            pvm_send(dest, i % nTasks);
+            pvm_send(dest, 0);
         }
     }
     
@@ -83,13 +83,15 @@ void matrix_save(char filename[], double *matrix, int N, int proc, int nTasks) {
     }
 }
 
-void matrix_display(double *matrix, int N) {
-    for(size_t i = 0 ; i < N ; i++) {
-        for(size_t j = 0 ; j < N ; j++) {
-            printf("%8.2f ", *(matrix+i*N+j));
+void matrix_display(double *matrix, int myGrpId, int N, int nTasks) {
+    printf("myGrpId: %d\n", myGrpId);
+    for (size_t i = 0 ; i < N/nTasks ; i++) {
+	    for (size_t j = 0 ; j < N ; j++) {
+        	printf("%f ", matrix[i*N + j]);
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 void gauss(double* matrix, int N) {
@@ -125,6 +127,8 @@ void dowork(char filename[], int myGrpId, int N, int nTasks) {
     else {
         matrix_recv(matrix, N, nTasks);
     }
+    
+    matrix_display(matrix, myGrpId, N, nTasks);
 
     sprintf(filename+strlen(filename), ".result");
     matrix_save(filename, tab, N, myGrpId, nTasks);
