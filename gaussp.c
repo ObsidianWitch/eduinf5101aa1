@@ -10,6 +10,14 @@
 
 #define GRPNAME "gaussp"
 
+/**
+ * Reads the N*N matrix stored in the specified file.
+ * Stores N / nTasks lines in the (partial) matrix parameter for T0.
+ * Sends N / nTasks lines to each task. Each task can then receive and store the
+ * lines in its partial matrix.
+ * @Note This function must be executed by the task having the id 0 (T0) in the 
+ * previously created pvm group.
+ */
 void matrix_load(char filename[], double *matrix, int N, int nTasks) {	
 	FILE *f = fopen(filename, "r");
     if (f == NULL) { perror("matrix_load : fopen "); } 
@@ -39,7 +47,10 @@ void matrix_load(char filename[], double *matrix, int N, int nTasks) {
     fclose(f);
 }
 
-void matrix_recv(double* matrix, int N, int nTasks) {
+/**
+ * Receives a partial matrix from T0 and stores it in the matrix parameter.
+ */
+void partial_matrix_recv(double* matrix, int N, int nTasks) {
     int src = pvm_gettid(GRPNAME, 0);
     for (size_t i = 0 ; i < N / nTasks ; i++) {
         pvm_recv(src, -1);
@@ -47,7 +58,10 @@ void matrix_recv(double* matrix, int N, int nTasks) {
     }
 }
 
-void matrix_send(double* matrix, int N, int myGrpId, int nTasks) {
+/**
+ * Sends a partial matrix to T0.
+ */
+void partial_matrix_send(double* matrix, int N, int myGrpId, int nTasks) {
 	int dest = pvm_gettid(GRPNAME, 0);
 	for (size_t i = 0 ; i < N / nTasks ; i++) {
         pvm_initsend(PvmDataDefault);
@@ -56,6 +70,12 @@ void matrix_send(double* matrix, int N, int myGrpId, int nTasks) {
 	}
 }
 
+/**
+ * Saves a complete matrix in the specified file.
+ * The matrix parameter is T0's partial matrix. This function will retrieve
+ * the whole matrix by receiving missing lines from the other tasks.
+ * @note This function must be executed by T0.
+ */
 void matrix_save(
 	char filename[], double *matrix, int N, int myGrpId, int nTasks
 ) {    
@@ -66,14 +86,14 @@ void matrix_save(
     
     int counter = 0; // number of lines saved in the file for the task 0
     for(size_t i = 0 ; i < N ; i++) {
-        if (i % nTasks == 0) { // P0 saves its line
+        if (i % nTasks == 0) { // T0 saves its line
             for(size_t j = 0 ; j < N ; j++) {
             	fprintf(f, "%8.2f ", matrix[counter*N + j]);
             }
             fprintf(f, "\n");
             counter++;
         }
-        else { // P0 receives a line from another task
+        else { // T0 receives a line from another task
             int src = pvm_gettid(GRPNAME, i % nTasks);
             pvm_recv(src, -1);
             pvm_upkdouble(lineBuffer, N, 1);
@@ -120,32 +140,32 @@ void gauss(double* matrix, int N) {
 }
 
 void dowork(char filename[], int myGrpId, int N, int nTasks) {
-    double *matrix = malloc((N/nTasks) * N * sizeof(double));
-    if (matrix == NULL) { 
+    double *partialMatrix = malloc((N/nTasks) * N * sizeof(double));
+    if (partialMatrix == NULL) { 
 	    printf("Malloc failed\n");
 	    exit(EXIT_FAILURE);
     }
     
     if (myGrpId == 0) {
-        matrix_load(filename, matrix, N, nTasks);
+        matrix_load(filename, partialMatrix, N, nTasks);
     }
     else {
-        matrix_recv(matrix, N, nTasks);
+        partial_matrix_recv(partialMatrix, N, nTasks);
     }
     
-    matrix_display(matrix, myGrpId, N, nTasks);
+    matrix_display(partialMatrix, myGrpId, N, nTasks);
     
     // TODO compute gauss
 	
 	if (myGrpId == 0) {
 	    sprintf(filename+strlen(filename), ".result");
-    	matrix_save(filename, matrix, N, myGrpId, nTasks);
+    	matrix_save(filename, partialMatrix, N, myGrpId, nTasks);
     }
     else {
-    	matrix_send(matrix, N, myGrpId, nTasks);
+    	partial_matrix_send(partialMatrix, N, myGrpId, nTasks);
     }
     
-    free(matrix);
+    free(partialMatrix);
 }
 
 int main(int argc, char ** argv) {
