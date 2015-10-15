@@ -10,7 +10,7 @@
 
 #define GRPNAME "gaussp"
 
-void matrix_load(char filename[], double *tab, int N, int nTasks) {	
+void matrix_load(char filename[], double *matrix, int N, int nTasks) {	
 	FILE *f = fopen(filename, "r");
     if (f == NULL) { perror("matrix_load : fopen "); } 
     
@@ -24,7 +24,7 @@ void matrix_load(char filename[], double *tab, int N, int nTasks) {
 		
 		int taskGrpId = i % nTasks;
         if (taskGrpId == 0) {
-            memcpy(&tab[counter * N], lineBuffer, N * sizeof(double));
+            memcpy(&matrix[counter * N], lineBuffer, N * sizeof(double));
             counter++;
         }
         else {
@@ -39,15 +39,15 @@ void matrix_load(char filename[], double *tab, int N, int nTasks) {
     fclose(f);
 }
 
-void matrix_recv(double* tab, int N, int nTasks) {
+void matrix_recv(double* matrix, int N, int nTasks) {
     int src = pvm_gettid(GRPNAME, 0 );
     for (size_t i = 0 ; i < N / nTasks ; i++) {
         pvm_recv(src, -1);
-        pvm_upkdouble(&tab[i*N], N, 1);
+        pvm_upkdouble(&matrix[i*N], N, 1);
     }
 }
 
-void matrix_save(char filename[], double *tab, int N, int proc, int nTasks) {
+void matrix_save(char filename[], double *matrix, int N, int proc, int nTasks) {
     FILE *f;
 
     if (proc == 0) {
@@ -55,7 +55,7 @@ void matrix_save(char filename[], double *tab, int N, int proc, int nTasks) {
         for(size_t i = 0 ; i < N ; i++) {
             if (i % nTasks == 0) { // P0 save its line
                 for(size_t j = 0 ; j < N ; j++) {
-                    fprintf(f, "%8.2f ", *(tab+i*N+j));
+                    fprintf(f, "%8.2f ", *(matrix+i*N+j));
                 }
                 fprintf(f, "\n");
             }
@@ -77,57 +77,59 @@ void matrix_save(char filename[], double *tab, int N, int proc, int nTasks) {
         for (size_t i = 0 ; i < N / nTasks ; i++) {
             int dest = pvm_gettid(GRPNAME, i % nTasks);
             pvm_initsend(PvmDataDefault);
-            pvm_pkdouble(tab+i*N, N, 1);
+            pvm_pkdouble(matrix+i*N, N, 1);
             pvm_send(dest, i);
         }
     }
 }
 
-void matrix_display(double *tab, int N) {
+void matrix_display(double *matrix, int N) {
     for(size_t i = 0 ; i < N ; i++) {
         for(size_t j = 0 ; j < N ; j++) {
-            printf("%8.2f ", *(tab+i*N+j));
+            printf("%8.2f ", *(matrix+i*N+j));
         }
         printf("\n");
     }
 }
 
-void gauss(double* tab, int N) {
+void gauss(double* matrix, int N) {
     double pivot;
 
     for(size_t k = 0 ; k < N-1 ; k++) { // mise a 0 de la col. k
         // printf(". ");
-        if (fabs(*(tab+k+k*N)) <= 1.0e-11) {
-            printf("ATTENTION: pivot %zu presque nul: %g\n", k, *(tab+k+k*N));
+        if (fabs(*(matrix+k+k*N)) <= 1.0e-11) {
+            printf("ATTENTION: pivot %zu presque nul: %g\n", k, *(matrix+k+k*N));
             exit(EXIT_FAILURE);
         }
         for(size_t i = k+1 ; i < N ; i++) { // update lines(k+1) to(n-1)
-            pivot = - *(tab+k+i*N) / *(tab+k+k*N);
+            pivot = - *(matrix+k+i*N) / *(matrix+k+k*N);
             for(size_t j = k ; j < N ; j++) { // update elts(k) -(N-1) of line i
-                *(tab+j+i*N) = *(tab+j+i*N) + pivot * *(tab+j+k*N);
+                *(matrix+j+i*N) = *(matrix+j+i*N) + pivot * *(matrix+j+k*N);
             }
-            // *(tab+k+i*N) = 0.0;
+            // *(matrix+k+i*N) = 0.0;
         }
     }
     printf("\n");
 }
 
 void dowork(char filename[], int myGrpId, int N, int nTasks) {
-    double *tab = malloc((N/nTasks) * N * sizeof(double));
-    if (tab == NULL) { 
+    double *matrix = malloc((N/nTasks) * N * sizeof(double));
+    if (matrix == NULL) { 
 	    printf("Malloc failed\n");
 	    exit(EXIT_FAILURE);
     }
     
     if (myGrpId == 0) {
-        matrix_load(filename, tab, N, nTasks);
+        matrix_load(filename, matrix, N, nTasks);
     }
     else {
-        matrix_recv(tab, N, nTasks);
+        matrix_recv(matrix, N, nTasks);
     }
 
     sprintf(filename+strlen(filename), ".result");
     matrix_save(filename, tab, N, myGrpId, nTasks);
+    
+    free(matrix);
 }
 
 int main(int argc, char ** argv) {
