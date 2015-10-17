@@ -18,7 +18,7 @@
  * @Note This function must be executed by the task having the id 0 (T0) in the
  * previously created pvm group.
  */
-void matrix_load(char filename[], double *matrix, int N, int nTasks) {
+void matrix_load(char filename[], double *matrix, size_t N, int nTasks) {
     FILE *f = fopen(filename, "r");
     if (f == NULL) { perror("matrix_load : fopen "); }
     
@@ -50,7 +50,7 @@ void matrix_load(char filename[], double *matrix, int N, int nTasks) {
 /**
  * Receives a partial matrix from T0 and stores it in the matrix parameter.
  */
-void partial_matrix_recv(double* matrix, int N, int nTasks) {
+void partial_matrix_recv(double* matrix, size_t N, int nTasks) {
     int src = pvm_gettid(GRPNAME, 0);
     for (size_t i = 0 ; i < N / nTasks ; i++) {
         pvm_recv(src, -1);
@@ -61,7 +61,7 @@ void partial_matrix_recv(double* matrix, int N, int nTasks) {
 /**
  * Sends a partial matrix to T0.
  */
-void partial_matrix_send(double* matrix, int N, int nTasks) {
+void partial_matrix_send(double* matrix, size_t N, int nTasks) {
     int dest = pvm_gettid(GRPNAME, 0);
     for (size_t i = 0 ; i < N / nTasks ; i++) {
         pvm_initsend(PvmDataDefault);
@@ -76,7 +76,7 @@ void partial_matrix_send(double* matrix, int N, int nTasks) {
  * the whole matrix by receiving missing lines from the other tasks.
  * @note This function must be executed by T0.
  */
-void matrix_save(char filename[], double *matrix, int N, int nTasks) {
+void matrix_save(char filename[], double *matrix, size_t N, int nTasks) {
     FILE *f = fopen(filename, "w");
     if(f == NULL) { perror("matrix_save : fopen "); }
     
@@ -106,7 +106,7 @@ void matrix_save(char filename[], double *matrix, int N, int nTasks) {
     fclose(f);
 }
 
-void matrix_display(double *matrix, int myGrpId, int N, int nTasks) {
+void matrix_display(double *matrix, int myGrpId, size_t N, int nTasks) {
     printf("myGrpId: %d\n", myGrpId);
     for (size_t i = 0 ; i < N/nTasks ; i++) {
         for (size_t j = 0 ; j < N ; j++) {
@@ -117,7 +117,7 @@ void matrix_display(double *matrix, int myGrpId, int N, int nTasks) {
     printf("\n");
 }
 
-void gauss(double* matrix, int myGrpId, int N, int nTasks) {
+void gauss(double* matrix, int myGrpId, size_t N, int nTasks) {
     double *lineBuffer = malloc(N * sizeof(double));
     
     for (size_t k = 0 ; k < N - 1 ; k++) {
@@ -156,7 +156,7 @@ void gauss(double* matrix, int myGrpId, int N, int nTasks) {
     free(lineBuffer);
 }
 
-void dowork(char filename[], int myGrpId, int N, int nTasks) {
+void dowork(char filename[], int myGrpId, size_t N, int nTasks) {
     double *partialMatrix = malloc((N/nTasks) * N * sizeof(double));
     if (partialMatrix == NULL) {
         printf("Malloc failed\n");
@@ -206,7 +206,7 @@ int main(int argc, char ** argv) {
         exit(EXIT_FAILURE);
     }
 
-    int N = atoi(argv[1]); // matrix size
+    size_t N = atoi(argv[1]); // matrix size
     
     char filename[255];
     strcpy(filename, argv[2]);
