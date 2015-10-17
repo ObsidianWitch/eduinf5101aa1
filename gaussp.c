@@ -170,7 +170,9 @@ void dowork(char filename[], int myGrpId, int N, int nTasks) {
         partial_matrix_recv(partialMatrix, N, nTasks);
     }
     
+    #ifdef DEBUG
     matrix_display(partialMatrix, myGrpId, N, nTasks);
+    #endif
     
     if (myGrpId == 0) {
         struct timeval tv1, tv2;
