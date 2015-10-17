@@ -172,7 +172,20 @@ void dowork(char filename[], int myGrpId, int N, int nTasks) {
     
     matrix_display(partialMatrix, myGrpId, N, nTasks);
     
-    gauss(partialMatrix, myGrpId, N, nTasks);
+    if (myGrpId == 0) {
+        struct timeval tv1, tv2;
+        
+        gettimeofday(&tv1, NULL);
+        gauss(partialMatrix, myGrpId, N, nTasks);
+        gettimeofday(&tv2, NULL);
+        
+        int diffTime = (tv2.tv_sec - tv1.tv_sec) * 1000000
+                          + (tv2.tv_usec - tv1.tv_usec);
+        printf ("computation time: %10.8f sec.\n", diffTime / 1000000.0);
+    }
+    else {
+        gauss(partialMatrix, myGrpId, N, nTasks);
+    }
     
     if (myGrpId == 0) {
         sprintf(filename+strlen(filename), ".result");
