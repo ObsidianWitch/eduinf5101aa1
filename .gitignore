@@ -2,3 +2,9 @@ bin/
 data/
 *.result
 *~
+*.aux
+*.log
+*.oout
+*.toc
+*.pdf
+
