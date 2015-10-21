@@ -9,6 +9,46 @@
 \usepackage{a4wide}
 \usepackage{enumitem}
 
+\usepackage[usenames,dvipsnames]{xcolor}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{steelblue}{rgb}{0.16,0.37,0.58}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{blue}{rgb}{0,0,0.7}
+\definecolor{hlColor}{rgb}{0.94,0.94,0.94}
+\definecolor{shadecolor}{rgb}{0.96,0.96,0.96}
+\definecolor{TFFrameColor}{rgb}{0.96,0.96,0.96}
+\definecolor{TFTitleColor}{rgb}{0.00,0.00,0.00}
+\definecolor{lightred}{rgb}{1,0.96,0.96}
+\definecolor{darkred}{rgb}{0.85,0.33,0.31}
+\definecolor{lightblue}{HTML}{EBF5FA}
+\definecolor{lightblue2}{HTML}{E3F2FA}
+\definecolor{darkblue}{HTML}{D2DCE1}
+\definecolor{lightyellow}{HTML}{FFFAE6}
+\definecolor{darkyellow}{HTML}{FAE6BE}
+
+\usepackage{listings}
+\lstset{
+	language=C,
+	basicstyle=\scriptsize,
+	numbers=left,                   % where to put the line-numbers
+  	numberstyle=\tiny\color{gray},
+	commentstyle=\color{steelblue},
+	stringstyle=\color{BrickRed},
+	backgroundcolor=\color{shadecolor},
+    keywordstyle=\color{OliveGreen},
+	frame=single,                   % adds a frame around the code
+ 	rulecolor=\color{black},
+	emph={},
+	emphstyle=\color{mauve},
+	morekeywords=[2]{},
+	keywordstyle=[2]{\color{dkgreen}},
+	showstringspaces=false,
+  	tabsize=4,
+	moredelim=[is][\small\ttfamily]{/!}{!/},
+	breaklines=true
+}
+
 \usepackage{hyperref}
 \hypersetup{
 	colorlinks=true, % false: boxed links; true: colored links
@@ -32,7 +72,24 @@
 \tableofcontents
 \newpage
 
-\section{Introduction}
+\section{Chargement en parallèle de la matrice}
+
+\lstinputlisting[firstline=13, lastline=48]{../gaussp.c}
+
+\lstinputlisting[firstline=50, lastline=59]{../gaussp.c}
+\newpage
+
+\section{Gauss parallèle}
+
+\lstinputlisting[firstline=120, lastline=157]{../gaussp.c}
+\newpage
+
+\section{Sauvegarde en parallèle de la matrice}
+
+\lstinputlisting[firstline=73, lastline=107]{../gaussp.c}
+
+\lstinputlisting[firstline=61, lastline=71]{../gaussp.c}
+\newpage
 
 \section{Relevés}
 
