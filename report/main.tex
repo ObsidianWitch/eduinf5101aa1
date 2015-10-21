@@ -34,9 +34,9 @@
 	numbers=left,                   % where to put the line-numbers
   	numberstyle=\tiny\color{gray},
 	commentstyle=\color{steelblue},
-	stringstyle=\color{BrickRed},
+	stringstyle=\color{darkred},
 	backgroundcolor=\color{shadecolor},
-    keywordstyle=\color{OliveGreen},
+    keywordstyle=\color{dkgreen},
 	frame=single,                   % adds a frame around the code
  	rulecolor=\color{black},
 	emph={},
@@ -113,6 +113,15 @@ autres tâches se contentent de recevoir les lignes envoyées par T0
 \newpage
 
 \section{Gauss parallèle}
+
+Pour chaque $k$, toutes les tâches ont besoin des éléments $a[k][k]..a[k][N]$ pour
+le calcul de $a[i][j]$. Si une tâche a besoin de la ligne $k$ et ne la possède pas,
+elle utilise un \hl{pvm\_recv()} afin d'attendre de recevoir celle-ci. Si l'a tâche
+possède la ligne en question, alors elle la diffuse (\hl{pvm\_bcast()}) à toutes
+les autres tâches.\\
+
+\textbf{N.B.} Au final, toutes les tâches auront reçu les lignes constituant la
+partie triangulaire supérieure de la matrice au cours des itérations sur $k$.\\
 
 \lstinputlisting[firstline=120, lastline=157]{../gaussp.c}
 \newpage
