@@ -72,6 +72,27 @@
 \tableofcontents
 \newpage
 
+\section{Distribution des données}
+
+\begin{lstlisting}
+for k = 0 to n-2
+	for i = (k+1) to n-1
+		ratio = -a[i][k] / a[k][k]
+		for j = (k+1) to n-1
+			a[i][j] += ratio * a[k][j]
+\end{lstlisting}
+\
+
+Pour un $k$ donné, nous pouvons paralléliser la boucle $i$ (ou $j$). Une première
+idée pour paralléliser serait de diviser la matrice en $N/Nt$ ($N$ taille de la
+matrice, $Nt$ nombre de tâches). La première tâche s'occuperait ainsi des $N/Nt$
+premières lignes, et ainsi de suite pour chaque tâche. Cependant, procéder ainsi
+impliquerait que les premières tâches aient moins de travail que les dernières.
+En effet, si nous prenons par exemple $N = 16$, et $Nt = 4$, alors la première
+tâche n'aurait que 3 itérations de boucles de $k$ à effectuer (0 à 2), alors que
+la dernière tâche en aurait 15 à effectuer (0 à 14). Répartir de manière cyclique
+les lignes sur les différentes tâches serait ainsi plus efficace.
+
 \section{Chargement en parallèle de la matrice}
 
 \lstinputlisting[firstline=13, lastline=48]{../gaussp.c}
