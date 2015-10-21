@@ -62,6 +62,9 @@
 
 \usepackage{eurosym} %\euro -> €
 
+\usepackage{soul}
+\sethlcolor{hlColor}
+
 \title{INF5101A - TP1}
 
 \date{\today}
@@ -91,9 +94,18 @@ impliquerait que les premières tâches aient moins de travail que les dernière
 En effet, si nous prenons par exemple $N = 16$, et $Nt = 4$, alors la première
 tâche n'aurait que 3 itérations de boucles de $k$ à effectuer (0 à 2), alors que
 la dernière tâche en aurait 15 à effectuer (0 à 14). Répartir de manière cyclique
-les lignes sur les différentes tâches serait ainsi plus efficace.
+les lignes sur les différentes tâches est ainsi plus efficace.
+
+\newpage
 
 \section{Chargement en parallèle de la matrice}
+
+Il n'est pas possible pour chaque tâche de lire de manière concurrente le
+fichier contenant la matrice à traiter (limite de NFS). Une tâche (T0) se chargera
+donc de lire chaque ligne de la matrice, et de les envoyer (\hl{pvm\_send()}) à
+la bonne tâche (ou de les conserver si ces lignes appartiennent à T0). Les
+autres tâches se contentent de recevoir les lignes envoyées par T0
+(\hl{pvm\_recv()}).\\
 
 \lstinputlisting[firstline=13, lastline=48]{../gaussp.c}
 
