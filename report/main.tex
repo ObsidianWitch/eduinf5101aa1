@@ -138,6 +138,18 @@ dernières sont envoyées à T0 afin de constituer la matrice de résulat.\\
 
 \section{Relevés}
 
+Les résultats ci-dessous ont été relevés à l'aide de \hl{pvm} plutôt que
+\hl{xpvm}, et en désactivant les messages de debug. Les gains en vitesse sont
+surtout visible sur les grosses matrices (5000 \& 10000).\\
+
+Une autre piste à explorer serait d'exécuter plusieurs fois l'algorithme
+séquentiel sur des matrices différentes et sur des coeurs différents. Cette
+approche aurait pour avantage de ne pas avoir à compléxifier l'algorithme,
+sachant que l'algotithme en question ne peut pas complétement être parallélisé
+comme nous avons pu le voir. Cependant, en procédant ainsi nous partons du
+principe qu'il y aura plusieurs matrices à traiter, ce qui n'est pas forcémment
+le cas en fonction du cas d'utilisation.\\
+
 \begin{figure}[h!]
 	\centering
 	\caption{Computation time}
