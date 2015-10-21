@@ -128,6 +128,9 @@ partie triangulaire supérieure de la matrice au cours des itérations sur $k$.\
 
 \section{Sauvegarde en parallèle de la matrice}
 
+Une fois que les différentes tâches ont fini de traiter leurs lignes, ces
+dernières sont envoyées à T0 afin de constituer la matrice de résulat.\\
+
 \lstinputlisting[firstline=73, lastline=107]{../gaussp.c}
 
 \lstinputlisting[firstline=61, lastline=71]{../gaussp.c}
