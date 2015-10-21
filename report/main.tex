@@ -18,14 +18,7 @@
 }
 \newcommand{\hhref}[1]{\href{#1}{#1}}
 
-%SWOT
-\usepackage{times}
-\usepackage{tikz}
-\usetikzlibrary{matrix}
-\newcommand{\texta}{Helpful\\ \tiny (to achieve the objective)\par}
-\newcommand{\textb}{Harmful\\ \tiny (to achieve the objective)\par}
-\newcommand{\textcn}{Internal origin\\ \tiny (product\slash company attributes)\par}
-\newcommand{\textdn}{External origin\\ \tiny (environment\slash market attributes)\par}
+\usepackage{makecell}
 
 \usepackage{eurosym} %\euro -> €
 
@@ -43,14 +36,43 @@
 
 \section{Relevés}
 
-\begin{tabular}{|l|l|l|l|l|}
-	\hline
-	& 1 & 4 & 10 & 20 \\ \hline
-	500 & 0.111 & 1.140 & 1.390 & 1.265 \\ \hline
-	1000 & 0.855 & 4.169 & 4.240 & 4.308 \\ \hline
-	5000 & 112.046 & 126.909 & 100.502 & 97.863 \\ \hline
-	10000 & 856.741 & 640.369 & 467.9 & 400 \\ \hline
+\begin{figure}[h!]
+	\centering
+	\caption{Computation time}
+	\begin{tabular}{|l|l|l|l|l|}
+		\hline
+		\diaghead{taille matriceeee}{Taille matrice}{Nb. tâches} & 1 & 4 & 10 & 20 \\ \hline
+		500 & 0.111 s & 1.140 s & 1.390 s & 1.265 s \\ \hline
+		1000 & 0.855 s & 4.169 s & 4.240 s & 4.308 s \\ \hline
+		5000 & 112.046 s & 126.909 s & 100.502 s & 97.863 s \\ \hline
+		10000 & 856.741 s & 640.369 s & 467.9 s & 400 s \\ \hline
+	\end{tabular}
+\end{figure}
 
-\end{tabular}
+\begin{figure}[h!]
+	\centering
+	\caption{Speedup}
+	\begin{tabular}{|l|l|l|l|l|}
+		\hline
+		\diaghead{taille matriceeee}{Taille matrice}{Nb. tâches} & 1 & 4 & 10 & 20 \\ \hline
+		500 && 0.097368421 & 0.079856115 & 0.087747036 \\ \hline
+		1000 && 0.205085152 & 0.201650943 & 0.198467967 \\ \hline
+		5000 && 0.882884587 & 1.114863386 & 1.144927092 \\ \hline
+		10000 && 1.337886437 & 1.831034409 & 2.1418525 \\ \hline
+	\end{tabular}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\caption{Efficacité}
+	\begin{tabular}{|l|l|l|l|l|}
+		\hline
+		\diaghead{taille matriceeee}{Taille matrice}{Nb. tâches} & 1 & 4 & 10 & 20 \\ \hline
+		500 && 0.024342105 & 0.007985612 & 0.004387352 \\ \hline
+		1000 && 0.051271288 & 0.020165094 & 0.009923398 \\ \hline
+		5000 && 0.220721147 & 0.111486339 & 0.057246355 \\ \hline
+		10000 && 0.334471609 & 0.183103441 & 0.107092625 \\ \hline
+	\end{tabular}
+\end{figure}
 
 \end{document}
