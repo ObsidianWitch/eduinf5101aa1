@@ -77,9 +77,8 @@
 
 \section{Introduction}
 
-Ce TP est une application de la théorie du parallélisme vu en cours avec PVM.
-Afin d'étudier l'intérêt de la parallélisation de résolutions de cas d'étude,
-Ici, nous cherchons à évaluer les performances de l'exécution d'une élimintation
+Ce TP est une application de la théorie du parallélisme vue en cours avec PVM.
+Ici, nous cherchons à évaluer les performances de l'exécution d'une élimination
 de Gauss parallélisée sur une matrice donnée. Les temps d'exécution pour les
 différentes tailles de matrices et différents nombres de tâches seront
 récapitulés dans un tableau comparatif.
@@ -125,7 +124,7 @@ autres tâches se contentent de recevoir les lignes envoyées par T0
 
 Pour chaque $k$, toutes les tâches ont besoin des éléments $a[k][k]..a[k][N]$ pour
 le calcul de $a[i][j]$. Si une tâche a besoin de la ligne $k$ et ne la possède pas,
-elle utilise un \hl{pvm\_recv()} afin d'attendre de recevoir celle-ci. Si l'a tâche
+elle utilise un \hl{pvm\_recv()} afin d'attendre de recevoir celle-ci. Si la tâche
 possède la ligne en question, alors elle la diffuse (\hl{pvm\_bcast()}) à toutes
 les autres tâches.\\
 
@@ -138,7 +137,7 @@ partie triangulaire supérieure de la matrice au cours des itérations sur $k$.\
 \section{Sauvegarde en parallèle de la matrice}
 
 Une fois que les différentes tâches ont fini de traiter leurs lignes, ces
-dernières sont envoyées à T0 afin de constituer la matrice de résulat.\\
+dernières sont envoyées à T0 afin de constituer la matrice résultat.\\
 
 \lstinputlisting[firstline=73, lastline=107]{../gaussp.c}
 
@@ -153,10 +152,10 @@ surtout visible sur les grosses matrices (5000 \& 10000).\\
 
 Une autre piste à explorer serait d'exécuter plusieurs fois l'algorithme
 séquentiel sur des matrices différentes et sur des coeurs différents. Cette
-approche aurait pour avantage de ne pas avoir à compléxifier l'algorithme,
-sachant que l'algotithme en question ne peut pas complétement être parallélisé
+approche aurait pour avantage de ne pas avoir à complexifier l'algorithme,
+sachant que celui-ci ne peut pas complètement être parallélisé
 comme nous avons pu le voir. Cependant, en procédant ainsi nous partons du
-principe qu'il y aura plusieurs matrices à traiter, ce qui n'est pas forcémment
+principe qu'il y aura plusieurs matrices à traiter, ce qui n'est pas forcément
 le cas en fonction du cas d'utilisation.\\
 
 \begin{figure}[h!]
